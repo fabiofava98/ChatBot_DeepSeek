@@ -139,33 +139,7 @@ class RAGPipeline:
         # After processing all files, add them to the vectorstore
         if all_documents:
             self.add_documents_to_vectorstore(all_documents)
-
-    def setup_rag_chain(self):
-        retriever = self.vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 3, "fetch_k": 1})
         
-        def format_docs(docs):
-            return "\n\n".join(doc.page_content for doc in docs)
-        
-        rag_chain = (
-            {"context": retriever | format_docs, "question": RunnablePassthrough()}
-            | self.prompt
-            | self.llm
-            | StrOutputParser()
-        )
-        return rag_chain  
-    
-    def query(self, chain, question: str) -> str:
-        memory_usage = psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024
-        self.logger.info(f"Memory usage: {memory_usage:.1f} MB")
-        response = chain.invoke(question)  
-        answer = response["result"]  # Extract the answer
-        sources = response.get("source_documents", [])  # Extract sources
-
-        # Format the sources properly
-        source_texts = "\n".join([f"- {doc.metadata.get('source', 'Unknown')}" for doc in sources])
-        
-        return f"**Answer:** {answer}\n\n**Sources:**\n{source_texts}"
-    
     def retrieval_qa_chain(self):
         qa_chain = RetrievalQA.from_chain_type(
             llm=self.llm,
