@@ -71,21 +71,16 @@ class RAGPipeline:
             self.logger.info(f"Loading existing vector store from {self.db_path}")
             return FAISS.load_local(self.db_path, self.embeddings)
         else:
-            """Load the existing vector store or create a new one if it doesn't exist."""
-            if os.path.exists(self.db_path):
-                self.logger.info(f"Loading existing vector store from {self.db_path}")
-                return FAISS.load_local(self.db_path, self.embeddings)
-            else:
-                self.logger.info("No existing vector store found. Creating a new one.")
-                dimensions: int = len(self.embeddings.embed_query("dummy"))
-                db = FAISS(
-                    embedding_function=self.embeddings,
-                    index=faiss.IndexFlatL2(dimensions),
-                    docstore=InMemoryDocstore(),
-                    index_to_docstore_id={},
-                    normalize_L2=False,
-                    )
-                return db
+            self.logger.info("No existing vector store found. Creating a new one.")
+            dimensions: int = len(self.embeddings.embed_query("dummy"))
+            db = FAISS(
+                embedding_function=self.embeddings,
+                index=faiss.IndexFlatL2(dimensions),
+                docstore=InMemoryDocstore(),
+                index_to_docstore_id={},
+                normalize_L2=False,
+                )
+            return db
 
     def load_and_split_documents(self, file_path: str) -> List[Document]:
         """Load and split documents based on the file type."""
@@ -189,9 +184,6 @@ class RAGPipeline:
 def qa_bot():
     rag = RAGPipeline(model_name="deepseek-r1:8b", max_memory_gb=3.0, db_path="")
     #rag = RAGPipeline(model_name="deepseek-r1:1.5b", max_memory_gb=3.0, db_path="vectorstore/db_faiss")
-    # documents = rag.load_and_split_documents("trial.txt")
-    # documents = rag.load_and_split_documents("trial.csv")
-    # documents = rag.load_and_split_documents("Herrmann2023b.pdf")
     rag.add_new_folder_to_knowledge("rag_files")
     qa = rag.retrieval_qa_chain()
     
