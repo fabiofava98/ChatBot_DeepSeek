@@ -1,0 +1,1 @@
+from .settings import MODEL_NAME, MAX_MEMORY_GB, DB_PATH, DOCUMENTS_FOLDER
